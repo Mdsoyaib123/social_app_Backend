@@ -5,14 +5,11 @@ import catchAsync from "../../utils/catch_async";
 // CREATE POST
 const createPost = catchAsync(async (req: Request, res: Response) => {
 
-    const files = req.files as {
+    const file = req.file as unknown as {
         [fieldname: string]: Express.Multer.File[];
     };
-
-    const postImg = files.image?.[0]?.path;
-    console.log("postImg from controller ", postImg);
-
-    const result = await PostService.createPost(req.body, req.user?._id);
+    const postImg = file.path as unknown as string
+    const result = await PostService.createPost(req.body, postImg, req.user?._id);
 
     res.status(201).json({
         success: true,
@@ -47,10 +44,17 @@ const getSinglePost = catchAsync(async (req: Request, res: Response) => {
 
 // UPDATE
 const updatePost = catchAsync(async (req: Request, res: Response) => {
+    console.log("Update controller post called with body:", req.body);
+
+    const file = req.file as unknown as Express.Multer.File | undefined;
+
+    const postImg = file?.path; // ✅ safe optional chaining
+
     const result = await PostService.updatePost(
         req.params.postId as string,
         req.user?._id as string,
-        req.body
+        req.body,
+        postImg
     );
 
     res.status(200).json({

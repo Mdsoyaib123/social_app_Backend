@@ -5,13 +5,17 @@ import { createUploader } from "../../utils/cloudinary";
 
 const router = express.Router();
 
-const imageUpload = createUploader("posts").single("image");
+
+const imageUpload = createUploader("posts")
 
 
-router.post("/", auth(), imageUpload, PostController.createPost);
+
+router.post("/create", auth(), imageUpload.single('image'), PostController.createPost);
 router.get("/feeds", auth(), PostController.getFeed);
-router.get("/:postId", auth(), PostController.getSinglePost);
-router.patch("/:postId", auth(), PostController.updatePost);
-router.delete("/:postId", auth(), PostController.deletePost);
+router.get("/getSingle/:postId", auth(), PostController.getSinglePost);
+router.patch("/updatePost/:postId", auth(), imageUpload.single('image'), PostController.updatePost);
+router.delete("/deletePost/:postId", auth(), PostController.deletePost);
 
-export const PostRoutes = router;
+const PostRoutes = router;
+
+export default PostRoutes;

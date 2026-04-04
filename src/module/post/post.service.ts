@@ -1,10 +1,11 @@
 import { PostModel } from "./post.model";
 import { TPost } from "./post.interface";
 
-const createPost = async (payload: TPost, userId: string) => {
+const createPost = async (payload: TPost, postImg: string, userId: string) => {
   return await PostModel.create({
     ...payload,
     authorId: userId,
+    image: postImg,
   });
 };
 
@@ -58,7 +59,7 @@ const getSinglePost = async (postId: string, userId: string) => {
 };
 
 // UPDATE
-const updatePost = async (postId: string, userId: string, payload: Partial<TPost>) => {
+const updatePost = async (postId: string, userId: string, payload: Partial<TPost>, postImg?: string) => {
   const post = await PostModel.findById(postId);
 
   if (!post) throw new Error("Post not found");
@@ -67,6 +68,9 @@ const updatePost = async (postId: string, userId: string, payload: Partial<TPost
     throw new Error("Unauthorized");
   }
 
+  if (postImg) {
+    payload.image = postImg;
+  }
   return await PostModel.findByIdAndUpdate(postId, payload, {
     new: true,
     runValidators: true,
