@@ -4,10 +4,7 @@ import auth from "../../middlewares/auth";
 import { createUploader } from "../../utils/cloudinary";
 
 const router = express.Router();
-
-
 const imageUpload = createUploader("posts")
-
 
 
 router.post("/create", auth(), imageUpload.single('image'), PostController.createPost);
