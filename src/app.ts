@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 app.use(express.json({ limit: "100mb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-// app.use("/api/v1", appRouter);
+app.use("/api/v1", appRouter);
 
 
 // Root route

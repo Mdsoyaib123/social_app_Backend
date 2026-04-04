@@ -1,17 +1,55 @@
-import { model, Schema } from "mongoose";
+import { Schema, model } from "mongoose";
+import bcrypt from "bcrypt";
 import { TUser } from "./user.interface";
 
-const user_schema = new Schema<TUser>(
+const userSchema = new Schema<TUser>(
   {
-    fristName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      index: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+      select: 0, // hide password by default
+    },
   },
   {
-    versionKey: false,
     timestamps: true,
-  },
+    versionKey: false,
+  }
 );
 
-export const User_Model = model("user", user_schema);
+// 🔐 Hash password before save
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
+  this.password = await bcrypt.hash(this.password, 10);
+});
+
+// 🔍 Static method example
+userSchema.statics.isUserExists = async function (email: string) {
+  return await this.findOne({ email }).select("+password");
+};
+
+export const UserModel = model<TUser>("User", userSchema);

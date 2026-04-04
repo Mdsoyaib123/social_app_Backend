@@ -1,29 +1,25 @@
 import bcrypt from "bcryptjs";
 import { AppError } from "../../utils/app_error";
-import { User_Model } from "../user/user.schema";
+
 import { TLoginPayload } from "./auth.interface";
 import { jwtHelpers } from "../../utils/JWT";
 import { configs } from "../../configs";
 import { Secret } from "jsonwebtoken";
+import { UserModel } from "../user/user.schema";
 
 
 // login user
 const login_user_from_db = async (
   payload: TLoginPayload,
-  ipAddress: string,
 ) => {
-  const isExistAccount: any = await User_Model.findOne({
+  console.log("payload from service ", payload);
+  const isExistAccount: any = await UserModel.findOne({
     email: payload?.email,
-  });
-
-  if (isExistAccount) {
-    await User_Model.findOneAndUpdate(
-      { email: payload?.email },
-      { ipAddress: ipAddress },
-      { new: true },
-    );
+  }).select("+password");
+  
+  if (!isExistAccount) {
+    throw new AppError("User not found", 404);
   }
-
 
   const isPasswordMatch = await bcrypt.compare(
     payload.password,
@@ -33,22 +29,10 @@ const login_user_from_db = async (
     throw new AppError("Invalid password", 401);
   }
 
-  await User_Model.findOneAndUpdate(
-    { email: payload.email },
-    {
-      fcmToken: payload?.fcmToken,
-      latitude: payload?.latitude,
-      longitude: payload?.longitude,
-    },
-
-    { new: true },
-  );
-
   const accessToken = jwtHelpers.generateToken(
     {
-      userId: isExistAccount._id,
+      _id: isExistAccount._id,
       email: isExistAccount.email,
-      role: isExistAccount.role,
     },
     configs.jwt.accessToken_secret as Secret,
     configs.jwt.accessToken_expires as string,
@@ -56,9 +40,8 @@ const login_user_from_db = async (
 
   const refreshToken = jwtHelpers.generateToken(
     {
-      userId: isExistAccount._id,
+      _id: isExistAccount._id,
       email: isExistAccount.email,
-      role: isExistAccount.role,
     },
     configs.jwt.refreshToken_secret as Secret,
     configs.jwt.refreshToken_expires as string,
@@ -66,7 +49,6 @@ const login_user_from_db = async (
   return {
     accessToken: accessToken,
     refreshToken: refreshToken,
-    role: isExistAccount.role,
     userId: isExistAccount._id,
   };
 };
@@ -82,12 +64,15 @@ const refresh_token_from_db = async (token: string) => {
     throw new Error("You are not authorized!");
   }
 
-  const userData: any = await User_Model.findOne({
+  const userData: any = await UserModel.findOne({
     email: decodedData.email,
   });
+  if (!userData) {
+    throw new AppError("User not found", 404);
+  }
 
   const accessToken = jwtHelpers.generateToken(
-    { userId: userData?._id, email: userData?.email, role: userData?.role },
+    { _id: userData?._id, email: userData?.email },
     configs?.jwt.accessToken_secret as string,
     configs.jwt.accessToken_expires as string,
   );

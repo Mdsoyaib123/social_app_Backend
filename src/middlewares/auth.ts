@@ -2,14 +2,14 @@ import { NextFunction, Request, Response } from "express";
 import { AppError } from "../utils/app_error";
 import { configs } from "../configs";
 import { jwtHelpers, JwtPayloadType } from "../utils/JWT";
-import { User_Model } from "../modules/user/user.schema";
+import { UserModel } from "../module/user/user.schema";
 
-type Role = "patient" | "doctor" | "solo_nurse" | "clinic" | "admin";
 
-const auth = (...roles: Role[]) => {
+const auth = () => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = req.headers.authorization?.split(" ")[1];
+      console.log("token from auth middleware ", token);
       if (!token) {
         throw new AppError("You are not authorize!!", 401);
       }
@@ -18,12 +18,8 @@ const auth = (...roles: Role[]) => {
         configs.jwt.accessToken_secret as string
       );
 
-      if (!roles.length || !roles.includes(verifiedUser.role)) {
-        throw new AppError("You are not authorize!!", 401);
-      }
-
       // check user
-      const isUserExist = await User_Model.findOne({
+      const isUserExist = await UserModel.findOne({
         email: verifiedUser?.email,
       }).lean();
 
