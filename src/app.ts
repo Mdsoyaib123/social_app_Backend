@@ -15,6 +15,7 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "http://localhost:5174",
+      "https://timely-syrniki-321fff.netlify.app",
       "*"
     ],
     methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
