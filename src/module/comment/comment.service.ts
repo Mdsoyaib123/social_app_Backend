@@ -1,5 +1,6 @@
 import { CommentModel } from "./comment.model";
 import { PostModel } from "../post/post.model";
+import path from "path";
 
 type CreateCommentPayload = {
   postId: string;
@@ -70,7 +71,6 @@ const updateComment = async (
   return comment;
 };
 
-// DELETE COMMENT + REPLIES
 const deleteComment = async (commentId: string, userId: string) => {
   const comment = await CommentModel.findById(commentId);
 
@@ -80,11 +80,22 @@ const deleteComment = async (commentId: string, userId: string) => {
     throw new Error("Unauthorized");
   }
 
+  const idsToDelete: string[] = [commentId];
+
+  // BFS traversal
+  for (let i = 0; i < idsToDelete.length; i++) {
+    const children = await CommentModel.find({
+      parentCommentId: idsToDelete[i],
+    }).select("_id");
+
+    children.forEach((child) => {
+      idsToDelete.push(child._id.toString());
+    });
+  }
+
+  // delete all at once
   await CommentModel.deleteMany({
-    $or: [
-      { _id: commentId },
-      { parentCommentId: commentId },
-    ],
+    _id: { $in: idsToDelete },
   });
 
   return true;
