@@ -10,6 +10,7 @@ const imageUpload = createUploader("posts")
 router.post("/create", auth(), imageUpload.single('image'), PostController.createPost);
 router.get("/feeds", auth(), PostController.getFeed);
 router.get("/getSingle/:postId", auth(), PostController.getSinglePost);
+router.patch("/updateVisibility", auth(), PostController.updatePostVisibility);
 router.patch("/updatePost/:postId", auth(), imageUpload.single('image'), PostController.updatePost);
 router.delete("/deletePost/:postId", auth(), PostController.deletePost);
 

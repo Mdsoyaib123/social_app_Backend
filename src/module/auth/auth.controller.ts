@@ -31,7 +31,9 @@ const login_user = catchAsync(async (req: Request, res: Response) => {
 
 const refresh_token = catchAsync(async (req: Request, res: Response) => {
   const { refreshToken } = req.cookies;
-  // console.log("refresh token form cookies", refreshToken);
+  console.log("refresh token form cookies", refreshToken);
+
+  
   const result = await auth_services.refresh_token_from_db(refreshToken);
   manageResponse(res, {
     statusCode: 200,

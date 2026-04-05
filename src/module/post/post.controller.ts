@@ -64,6 +64,21 @@ const updatePost = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const updatePostVisibility = catchAsync(async (req: Request, res: Response) => {
+    const result = await PostService.updatePostVisibility(
+        req.body.postId as string,
+        req.user?._id as string,
+        req.body.isPrivate
+    );
+    
+    res.status(200).json({
+        success: true,
+        message: "Post visibility updated successfully",
+        data: result,
+    });
+});
+
+
 // DELETE
 const deletePost = catchAsync(async (req: Request, res: Response) => {
     const result = await PostService.deletePost(req.params.postId as string, req.user?._id as string);
@@ -79,6 +94,7 @@ export const PostController = {
     createPost,
     getFeed,
     getSinglePost,
+    updatePostVisibility,
     updatePost,
     deletePost,
 };

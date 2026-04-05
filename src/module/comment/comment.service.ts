@@ -32,14 +32,34 @@ const createComment = async (
   });
 };
 
-// GET COMMENTS (PARENT ONLY)
+// GET COMMENTS (PARENT ONLY + REPLIES)
 const getCommentsByPost = async (postId: string) => {
-  return await CommentModel.find({
+  const comments = await CommentModel.find({
     postId,
     parentCommentId: null,
   })
     .populate("authorId", "firstName lastName")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const commentsWithReplies = await Promise.all(
+    comments.map(async (comment) => {
+      const replies = await CommentModel.find({
+        parentCommentId: comment._id,
+      })
+        .populate("authorId", "firstName lastName")
+        .sort({ createdAt: 1 })
+        .lean();
+
+      return {
+        ...comment,
+        replies,
+        repliesCount: replies.length,
+      };
+    })
+  );
+
+  return commentsWithReplies;
 };
 
 // GET REPLIES

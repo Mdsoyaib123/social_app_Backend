@@ -76,6 +76,20 @@ const updatePost = async (postId: string, userId: string, payload: Partial<TPost
     runValidators: true,
   });
 };
+const updatePostVisibility = async (postId: string, userId: string, isPrivate: boolean) => {
+  const post = await PostModel.findById(postId);
+
+  if (!post) throw new Error("Post not found");
+
+  if (post.authorId.toString() !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  return await PostModel.findByIdAndUpdate(postId, { isPrivate }, {
+    new: true,
+    runValidators: true,
+  });
+}
 
 // DELETE
 const deletePost = async (postId: string, userId: string) => {
@@ -94,6 +108,7 @@ export const PostService = {
   createPost,
   getFeed,
   getSinglePost,
+  updatePostVisibility,
   updatePost,
   deletePost,
 };
